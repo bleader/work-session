@@ -20,13 +20,27 @@ contexts() {
 
 term() { setsid -f foot tmux new-session -A -s "$1" >/dev/null 2>&1; }
 
+# kills the tmux session (and whatever runs in it) and drops the saved tabs
+del() {
+  local name
+  name=$(contexts | grep -vxF "$cur" | fuzzel --dmenu --prompt "delete > " $decoration) || exit 0
+  # typed input bypasses the list: only existing, non-current names reach rm
+  [[ $name != "$cur" ]] && contexts | grep -qxF "$name" || exit 1
+  [[ $(printf 'no\nyes' | fuzzel --dmenu --prompt "kill $name and its tabs? " $decoration) == yes ]] || exit 0
+  tmux kill-session -t "=$name" 2>/dev/null || true
+  rm -- "$qb_sessions/$name.yml"
+}
+
 case ${1:-} in
 resume)
   setsid -f qutebrowser -r "$cur" >/dev/null 2>&1
   term "$cur"
   exit
   ;;
-"") new=$(contexts | fuzzel --dmenu --prompt "ws [$cur] > " $decoration) || exit 0 ;;
+"")
+  new=$({ contexts; echo '[delete]'; } | fuzzel --dmenu --prompt "ws [$cur] > " $decoration) || exit 0
+  [[ $new == '[delete]' ]] && { del; exit; }
+  ;;
 *) new=$1 ;;
 esac
 
