@@ -2,7 +2,7 @@
 # ws: a work context = tmux session + qutebrowser session sharing the same name.
 #   ws          fuzzel menu, pick a context or type a new name
 #   ws NAME     switch to NAME (created if missing)
-#   ws term     open a terminal on the current context
+#   ws resume   at login: open browser + terminal on the current context
 set -eu
 
 qb_sessions=${XDG_DATA_HOME:-$HOME/.local/share}/qutebrowser/sessions
@@ -21,7 +21,8 @@ contexts() {
 term() { setsid -f foot tmux new-session -A -s "$1" >/dev/null 2>&1; }
 
 case ${1:-} in
-term)
+resume)
+  setsid -f qutebrowser -r "$cur" >/dev/null 2>&1
   term "$cur"
   exit
   ;;
