@@ -52,8 +52,9 @@ fi
 
 # browser: save the current context, swap in the new one
 if [[ $new != "$cur" ]]; then
+  # qutebrowser crashes on a window without geometry or a tab without an active entry
   [[ -e $qb_sessions/$new.yml ]] ||
-    printf 'windows:\n- tabs:\n  - history:\n    - url: about:blank\n      title: %s\n' "$new" >"$qb_sessions/$new.yml"
+    printf 'windows:\n- geometry: null\n  tabs:\n  - history:\n    - url: about:blank\n      title: %s\n      active: true\n' "$new" >"$qb_sessions/$new.yml"
   setsid -f qutebrowser ":session-save --quiet $cur" ":session-load --clear $new" >/dev/null 2>&1
 fi
 
